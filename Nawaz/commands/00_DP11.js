@@ -1,83 +1,55 @@
 module.exports.config = {
-  name: "dp11",
-  version: "1.0.0",
-  hasPermssion: 0,
-  credits: "𝐏𝐑𝐈𝐘𝐀𝐍𝐒𝐇𝐈 𝐊𝐀𝐔𝐑",
-  description: "dpname maker",
-  commandCategory: "dpname",
-  usages: "text 1 + text 2",
-  cooldowns: 1
-};
-module.exports.wrapText = (ctx, text, maxWidth) => {
-  return new Promise((resolve) => {
-    if (ctx.measureText(text).width < maxWidth) return resolve([text]);
-    if (ctx.measureText("W").width > maxWidth) return resolve(null);
-    const words = text.split(" ");
-    const lines = [];
-    let line = "";
-    while (words.length > 0) {
-      let split = false;
-      while (ctx.measureText(words[0]).width >= maxWidth) {
-        const temp = words[0];
-        words[0] = temp.slice(0, -1);
-        if (split) words[1] = `${temp.slice(-1)}${words[1]}`;
-        else {
-          split = true;
-          words.splice(1, 0, temp.slice(-1));
-        }
-      }
-      if (ctx.measureText(`${line}${words[0]}`).width < maxWidth)
-        line += `${words.shift()} `;
-      else {
-        lines.push(line.trim());
-        line = "";
-      }
-      if (words.length === 0) lines.push(line.trim());
-    }
-    return resolve(lines);
-  });
+ name: "uid",
+ version: "1.0.0",
+ permission: 0,
+ credits: "Aaryan",
+ usePrefix: false,
+ description: "get user id.",
+ commandCategory: "without prefix",
+ cooldowns: 5
 };
 
-module.exports.run = async function ({ api, event, args, Users }) {
-  let { senderID, threadID, messageID } = event;
-  const { loadImage, createCanvas } = require("canvas");
-  const Canvas = global.nodemodule["canvas"];
-  const request = require('request');
-  const fs = global.nodemodule["fs-extra"];
-  const axios = global.nodemodule["axios"];
-  let pathImg = __dirname + `/cache/drake.png`;
-  const text = args.join(" ").trim().replace(/\s+/g, " ").replace(/(\s+\=)/g, "+").replace(/\|\s+/g, "+").split("+");
-  let getImage = (
-    await axios.get(encodeURI(`https://i.imgur.com/r7w4Vxb.jpeg`), {
-      responseType: "arraybuffer",
-    })
-  ).data;
-  fs.writeFileSync(pathImg, Buffer.from(getImage, "utf-8"));
-if(!fs.existsSync(__dirname+'/cache/SVN-Arial 2.ttf')) { 
-      let getfont = (await axios.get(`https://drive.google.com/u/0/uc?id=11YxymRp0y3Jle5cFBmLzwU89XNqHIZux&export=download`, { responseType: "arraybuffer" })).data;
-       fs.writeFileSync(__dirname+"/cache/SVN-Arial 2.ttf", Buffer.from(getfont, "utf-8"));
-    };
-  let baseImage = await loadImage(pathImg);
-  let canvas = createCanvas(baseImage.width, baseImage.height);
-  let ctx = canvas.getContext("2d");
-  ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
-  Canvas.registerFont(__dirname+`/cache/SVN-Arial 2.ttf`, {
-        family: "SVN-Arial 2"
-    });
-  ctx.font = "60px SVN-Arial 2";
-  ctx.fillStyle = "#000000";
-  ctx.textAlign = "center";
-  const line = await this.wrapText(ctx, text[0], 400);
-  const lines = await this.wrapText(ctx, text[1], 464);
-  ctx.fillText(line.join("\n"), 264, 618)
-  ctx.fillText(lines.join("\n"), 441, 505)
-  ctx.beginPath();
-  const imageBuffer = canvas.toBuffer();
-  fs.writeFileSync(pathImg, imageBuffer);
-  return api.sendMessage(
-    { attachment: fs.createReadStream(pathImg) },
-    threadID,
-    () => fs.unlinkSync(pathImg),
-    messageID
-  );
-};
+module.exports.run = async function({ event, api, args, client, Currencies, Users, utils, __GLOBAL, reminder }) {
+const fs = global.nodemodule["fs-extra"];
+		const request = global.nodemodule["request"];
+		const axios = global.nodemodule['axios']; 
+		if(event.type == "message_reply") { 
+			let name = await Users.getNameUser(event.messageReply.senderID) 
+ uid = event.messageReply.senderID
+ var callback = () =>   api.sendMessage({body:`=== [ 𝗨𝗜𝗗 𝗨𝗦𝗘𝗥 ] ====\n━━━━━━━━━━━━━━━━━━\n[ ▶️]➜ 𝗜𝗗: ${uid}\n[ ▶️]➜ 𝗜𝗕: m.me/${uid}\n[ ▶️]➜ 𝗟𝗶𝗻𝗸𝗳𝗯: https://www.facebook.com/profile.php?id=${uid}\n━━━━━━━━━━━━━━━━━━`, attachment: fs.createReadStream(__dirname + "/cache/1.png")}, event.threadID,
+				() => fs.unlinkSync(__dirname + "/cache/1.png"),event.messageID); 
+		return request(encodeURI(`https://graph.facebook.com/${uid}/picture?height=1500&width=1500&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`)).pipe(fs.createWriteStream(__dirname+'/cache/1.png')).on('close',
+				() => callback()); 
+		}
+		if (!args[0]) {
+			var uid = event.senderID;
+			const res = await axios.get(`https://www.nguyenmanh.name.vn/api/fbInfo?id=${uid}&apikey=LV7LWgAp`);
+var name = res.data.result.name 
+				var callback = () =>  api.sendMessage({body:`=== [ 𝗨𝗜𝗗 𝗨𝗦𝗘𝗥 ] ====\n━━━━━━━━━━━━━━━━━━\n[ ▶️]➜ 𝗜𝗗: ${event.senderID}\n[ ▶️]➜ 𝗜𝗕: m.me/${event.senderID}\n[ ▶️]➜ 𝗟𝗶𝗻𝗸𝗳𝗯: https://www.facebook.com/profile.php?id=${event.senderID}\n━━━━━━━━━━━━━━━━━━`, attachment: fs.createReadStream(__dirname + "/cache/1.png")}, event.threadID,
+				() => fs.unlinkSync(__dirname + "/cache/1.png"),event.messageID); 
+		return request(encodeURI(`https://graph.facebook.com/${event.senderID}/picture?height=1500&width=1500&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`)).pipe(fs.createWriteStream(__dirname+'/cache/1.png')).on('close',
+				() => callback()); 
+		}
+		else {
+ if (args[0].indexOf(".com/")!==-1) {
+		const res_ID = await api.getUID(args[0]);
+	 var name = data.name
+var data = await api.getUserInfoV2(res_ID);
+		var username = data.username
+		var link = data.link
+		var callback = () => api.sendMessage({body:`=== [ 𝗨𝗜𝗗 𝗨𝗦𝗘𝗥 ] ====\n━━━━━━━━━━━━━━━━━━\n[ ▶️]➜ 𝗜𝗗: ${res_ID}\n[ ▶️]➜ 𝗜𝗕: m.me/${res_ID}\n[ ▶️]➜ 𝗟𝗶𝗻𝗸𝗳𝗯: ${link}\n━━━━━━━━━━━━━━━━━━`, attachment: fs.createReadStream(__dirname + "/cache/1.png")}, event.threadID,
+				() => fs.unlinkSync(__dirname + "/cache/1.png"),event.messageID); 
+		return request(encodeURI(`https://graph.facebook.com/${res_ID}/picture?height=1500&width=1500&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`)).pipe(fs.createWriteStream(__dirname+'/cache/1.png')).on('close',
+				() => callback()); }
+ else {
+	if (args.join().indexOf('@') !== -1) 
+			var uid = Object.keys(event.mentions) 
+			var callback = () => 
+api.sendMessage({body:`=== [ 𝗨𝗜𝗗 𝗨𝗦𝗘𝗥 ] ====\n━━━━━━━━━━━━━━━━━━\n[ ▶️]➜ 𝗜𝗗: ${uid}\n[ ▶️]➜ 𝗜𝗕: m.me/${uid}\n[ ▶️]➜ 𝗟𝗶𝗻𝗸𝗳𝗯: https://www.facebook.com/profile.php?id=${uid}\n━━━━━━━━━━━━━━━━━━`, attachment: fs.createReadStream(__dirname + "/cache/1.png")}, event.threadID,
+				() => fs.unlinkSync(__dirname + "/cache/1.png"),event.messageID); 
+		return request(encodeURI(`https://graph.facebook.com/${uid}/picture?height=1500&width=1500&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`)).pipe(fs.createWriteStream(__dirname+'/cache/1.png')).on('close',
+				() => callback()); 
+
+ }
+}
+}
