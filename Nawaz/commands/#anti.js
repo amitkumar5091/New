@@ -1,235 +1,122 @@
 module.exports.config = {
-  name: "anti",
-  credits: "SHANKAR SUMAN",
-  hasPermission: 1,
-  dependencies: {
-    "imgbb-uploader": "",
-    "axios": "",
-    "fs": ""
-  },
-  description: "Ban something in the group",
-  usages: "< nickname/boximage/boxname >",
-  commandCategory: "Chat Box"
+	name: "rankup",
+	version: "7.3.1",
+	hasPermssion: 1,
+	credits: "𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭",
+	description: "Announce rankup for each group, user",
+	commandCategory: "Edit-IMG",
+	dependencies: {
+		"fs-extra": ""
+	},
+	cooldowns: 2,
 };
 
-const isBoolean = val => 'boolean' === typeof val;
+module.exports.handleEvent = async function({ api, event, Currencies, Users, getText }) {
+	var {threadID, senderID } = event;
+	const { createReadStream, existsSync, mkdirSync } = global.nodemodule["fs-extra"];
+  const { loadImage, createCanvas } = require("canvas");
+  const fs = global.nodemodule["fs-extra"];
+  const axios = global.nodemodule["axios"];
+  let pathImg = __dirname + "/noprefix/rankup/rankup.png";
+  let pathAvt1 = __dirname + "/cache/avtmot.png";
+  var id1 = event.senderID;
+  
 
-module.exports.run = async ({
-  api, event, args, Threads
-}) => {
-  try {
-    const {
-      threadID,
-      messageID,
-      senderID
-    } = event;
-    if (!await global.modelAntiSt.findOne({
-      where: {
-        threadID
-      }
-    }))
-      await global.modelAntiSt.create({
-        threadID, data: {}
-      });
+	threadID = String(threadID);
+	senderID = String(senderID);
 
+	const thread = global.data.threadData.get(threadID) || {};
 
-    try {
-      if (senderID == threadID)
-        return;
-      const data = (await global.modelAntiSt.findOne({
-        where: {
-          threadID
-        }
-      })).data;
-      if (!data.hasOwnProperty("antist")) {
-        data.antist = {};
-        await global.modelAntiSt.findOneAndUpdate({
-          threadID
-        }, {
-          data
-        });
-      }
-      if (!data.hasOwnProperty("antist_info")) {
-        data.antist_info = {};
-        await global.modelAntiSt.findOneAndUpdate({
-          threadID
-        }, {
-          data
-        });
-      }
+	let exp = (await Currencies.getData(senderID)).exp;
+	exp = exp += 1;
 
-      const setting = args[0]?.toLowerCase();
-      const _switch = args[1]?.toLowerCase();
-      switch (setting) {
-        case 'nickname': {
-          if (_switch == "on")
-            data.antist.nickname = true;
-          else if (_switch == "off")
-            data.antist.nickname = false;
-          else
-            data.antist.nickname = !data.antist.nickname;
+	if (isNaN(exp)) return;
 
-          if (data.antist.nickname === true) {
-            const _info = data.antist_info.nicknames ? data.antist_info : (await api.getThreadInfo(threadID) || {});
-            const {
-              nicknames
-            } = _info;
-            if (!nicknames) return api.sendMessage("[ 𝗠𝗢𝗗𝗘 ] → An error occurred while executing the command", threadID);
-            data.antist_info.nicknames = nicknames;
-          } else {
-            data.antist_info.nicknames = null;
-          }
-          break;
-        }
-        case 'boximage': {
-          if (_switch == "on")
-            data.antist.boximage = true;
-          else if (_switch == "off")
-            data.antist.boximage = false;
-          else
-            data.antist.boximage = !(isBoolean(data.antist.boximage) ? data.antist.boximage : false);
+	if (typeof thread["rankup"] != "undefined" && thread["rankup"] == false) {
+		await Currencies.setData(senderID, { exp });
+		return;
+	};
 
-          if (data.antist.boximage == true) {
-            const fs = global.nodemodule["fs"];
-            const axios = global.nodemodule["axios"];
-            const uploadIMG = global.nodemodule["imgbb-uploader"];
+	const curLevel = Math.floor((Math.sqrt(1 + (4 * exp / 3) + 1) / 2));
+	const level = Math.floor((Math.sqrt(1 + (4 * (exp + 1) / 3) + 1) / 2));
 
-            const _info = data.antist_info.imageSrc ? data.antist_info : (await api.getThreadInfo(threadID) || {});
-            const {
-              imageSrc
-            } = _info;
-            if (!imageSrc) return api.sendMessage("Your group has no image...", threadID);
-            const imageStream = (await axios.get(imageSrc, {
-              responseType: 'arraybuffer'
-            })).data;
-            const pathToImage = __dirname + `/cache/imgbb_antist_${Date.now()}.png`;
-            fs.writeFileSync(pathToImage, Buffer.from(imageStream, 'utf-8'));
-            const {
-              url
-            } = await uploadIMG("c4847250684c798013f3c7ee322d8692", pathToImage);
+	if (level > curLevel && level != 1) {
+		const name = global.data.userName.get(senderID) || await Users.getNameUser(senderID);
+		var messsage = (typeof thread.customRankup == "undefined") ? msg = getText("levelup") : msg = thread.customRankup, 
+			arrayContent;
 
-            fs.unlinkSync(pathToImage);
+		messsage = messsage
+			.replace(/\{name}/g, name)
+			.replace(/\{level}/g, level);
 
-            data.antist_info.imageSrc = url;
-          } else {
-            data.antist_info.imageSrc = null;
-          }
+		const moduleName = this.config.name;
 
-          break;
-        }
-        case 'boxname': {
-          if (_switch == "on")
-            data.antist.boxname = true;
-          else if (_switch == "off")
-            data.antist.boxname = false;
-          else
-            data.antist.boxname = !(isBoolean(data.antist.boxname) ? data.antist.boxname : false);
+    var background = [
+  "https://i.imgur.com/tVCXB0q.jpeg",
+  "https://i.imgur.com/JBYox72.jpeg",
+  "https://i.imgur.com/SRRuSRk.jpeg",   "https://i.imgur.com/qhx5HLz.jpeg",
+  "https://i.imgur.com/kbB4AfZ.jpeg",
+  "https://i.imgur.com/9oxlszW.jpeg",
+  "https://i.imgur.com/cJj8LTu.jpeg",   "https://i.imgur.com/LHb5eJt.jpeg",
 
+  ];
+    var rd = background[Math.floor(Math.random() * background.length)];
+    let getAvtmot = (
+    await axios.get(
+      `https://graph.facebook.com/${id1}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`,
+      { responseType: "arraybuffer" }
+    )
+  ).data;
+  fs.writeFileSync(pathAvt1, Buffer.from(getAvtmot, "utf-8"));
+  
+  let getbackground = (
+    await axios.get(`${rd}`, {
+      responseType: "arraybuffer",
+    })
+  ).data;
+  fs.writeFileSync(pathImg, Buffer.from(getbackground, "utf-8"));
+  
+    let baseImage = await loadImage(pathImg);
+    let baseAvt1 = await loadImage(pathAvt1);
+    let canvas = createCanvas(baseImage.width, baseImage.height);
+    let ctx = canvas.getContext("2d");
+    ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+    ctx.rotate(-25 * Math.PI / 180);
+    ctx.drawImage(baseAvt1, 40, 710, 630, 700);
+    const imageBuffer = canvas.toBuffer();
+    fs.writeFileSync(pathImg, imageBuffer);
+    fs.removeSync(pathAvt1);
+		api.sendMessage({body: messsage, mentions: [{ tag: name, id: senderID }], attachment: fs.createReadStream(pathImg) }, event.threadID, () => fs.unlinkSync(pathImg));
+    
+}
 
-          if (data.antist.boxname === true) {
-            const _info = data.antist_info.name ? data.antist_info : (await api.getThreadInfo(threadID) || {});
-            const {
-              name
-            } = _info;
-            if (!name) return api.sendMessage("The group has no name", threadID);
-            data.antist_info.name = name;
-          } else {
-            data.antist_info.name = null;
-          }
+	await Currencies.setData(senderID, { exp });
+	return;
+}
 
-          break;
-        }
-        case "theme": {
-          if (_switch == "on")
-            data.antist.theme = true;
-          else if (_switch == "off")
-            data.antist.theme = false;
-          else
-            data.antist.theme = !(isBoolean(data.antist.theme) ? data.antist.theme : false);
+module.exports.languages = {
+	"vi": {
+		"off": "𝗧𝗮̆́𝘁",
+		"on": "𝗕𝗮̣̂𝘁",
+		"successText": "𝐭𝐡𝐚̀𝐧𝐡 𝐜𝐨̂𝐧𝐠 𝐭𝐡𝐨̂𝐧𝐠 𝐛𝐚́𝐨 𝐫𝐚𝐧𝐤𝐮𝐩 ✨",
+		"levelup": "🌸 𝗞𝗶̃ 𝗻𝗮̆𝗻𝗴 𝘅𝗮̣𝗼 𝗹𝗼̂̀𝗻𝗻 𝗼̛̉ 𝗺𝗼̂𝗻 𝗽𝗵𝗮́𝗽 𝗵𝗮̂́𝗽 𝗱𝗶𝗲̂𝗺 𝗰𝘂̉𝗮 {name} 𝘃𝘂̛̀𝗮 𝗹𝗲̂𝗻 𝘁𝗼̛́𝗶 𝗹𝗲𝘃𝗲𝗹 {level} 🌸"
+	},
+	"en": {
+		"on": "on",
+		"off": "off",
+		"successText": "success notification rankup!",
+		"levelup": "{‎💝🥀══𝐂𝐨𝐍𝐠𝐑𝐚𝐓𝐮𝐋𝐚𝐓𝐢𝐎𝐧══🥀🍀\n\n ⃟══•{name}══⃟❣\n\n𝐘𝐨𝐔𝐫 𝐋𝐞𝐕𝐞𝐋 𝐈𝐬 ➾ 🍫 {level}\n\n🍒🌿🍒🌿🍒🌿🍒🌿🍒🌿🍒🍒",
+	}
+}
 
-          if (!global.client.antistTheme)
-            global.client.antistTheme = {};
-          if (data.antist.theme === true)
-            return api.sendMessage('Please go to group settings and choose a theme as the default theme', threadID, (err, info) => {
-              global.client.antistTheme[threadID] = {
-                threadID,
-                messageID: info.messageID,
-                author: senderID,
-                run: async function (themeID, accessibility_label) {
-                  delete global.client.antistTheme[threadID];
-                  const data = (await global.modelAntiSt.findOne({
-                    where: {
-                      threadID
-                    }
-                  })).data;
-                  if (!data.hasOwnProperty("antist")) {
-                    data.antist = {};
-                    await global.modelAntiSt.findOneAndUpdate({
-                      threadID
-                    }, {
-                      data
-                    });
-                  }
-                  if (!data.hasOwnProperty("antist_info")) {
-                    data.antist_info = {};
-                    await global.modelAntiSt.findOneAndUpdate({
-                      threadID
-                    }, {
-                      data
-                    });
-                  }
-
-                  data.antist.theme = true;
-                  data.antist_info.themeID = themeID;
-                  api.sendMessage('Default theme set to: ' + accessibility_label, threadID);
-                  await global.modelAntiSt.findOneAndUpdate({
-                    threadID
-                  }, {
-                    data
-                  });
-                }
-              };
-            });
-          break;
-        }
-        case "emoji": {
-          if (_switch == "on")
-            data.antist.emoji = true;
-          else if (_switch == "off")
-            data.antist.emoji = false;
-          else
-            data.antist.emoji = !(isBoolean(data.antist.emoji) ? data.antist.emoji : false);
-
-
-          if (data.antist.emoji === true) {
-            const _info = data.antist_info.emoji ? data.antist_info : (await api.getThreadInfo(threadID) || {});
-            const {
-              emoji
-            } = _info;
-            data.antist_info.emoji = emoji;
-          } else {
-            data.antist_info.emoji = null;
-          }
-
-          break;
-        }
-
-        default:
-          return api.sendMessage(`🛠==== [ 𝐌𝐎𝐃𝐄 ] ====🛠\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n• 𝗔𝗻𝘁𝗶 𝗯𝗼𝘅𝗻𝗮𝗺𝗲: 𝗕𝗮𝘁/𝗧𝗮𝗽 𝗰𝗼𝗺𝗺𝗮𝗻𝗱 𝘁𝗵𝗮𝘁 𝗮𝗿𝗲 𝘆𝗼𝘂 𝘁𝘆𝗽𝗶𝗻𝗴 𝗻𝗮𝗺𝗲\n• 𝗔𝗻𝘁𝗶 𝗯𝗼𝘅𝗶𝗺𝗮𝗴𝗲: 𝗕𝗮𝘁/𝗧𝗮𝗽 𝗰𝗼𝗺𝗺𝗮𝗻𝗱 𝘁𝗵𝗮𝘁 𝗮𝗿𝗲 𝘆𝗼𝘂 𝘁𝘆𝗽𝗶𝗻𝗴 𝗮𝗻𝘆 𝗵𝗲𝗹𝗽 𝗻𝗮𝗺𝗲\n• 𝗔𝗻𝘁𝗶 𝗻𝗶𝗰𝗸𝗻𝗮𝗺𝗲: 𝗕𝗮𝘁/𝗧𝗮𝗽 𝗰𝗼𝗺𝗺𝗮𝗻𝗱 𝘁𝗵𝗮𝘁 𝘁𝘆𝗽𝗲 𝗮 𝗯𝗶𝗲𝘁 𝗱𝗮𝗻𝗵 𝘁𝗵𝗮̀𝗻𝗵 𝘃𝗶𝗲̂𝗻\n• 𝗔𝗻𝘁𝗶 𝗲𝗺𝗼𝗷𝗶: 𝗕𝗮𝘁/𝘁𝗮̆́𝘁 𝗰𝗼𝗺𝗺𝗮𝗻𝗱 𝘁𝗵𝗮𝘁 𝘆𝗼𝘂 𝘁𝘆𝗽𝗲𝗱 𝗮𝗻 𝗲𝗺𝗼𝗷𝗶𝘀\n• 𝗔𝗻𝘁𝗶 𝘁𝗵𝗲𝗺𝗲: 𝗕𝗮𝘁/𝘁𝗮̆́𝘁 𝗰𝗼𝗺𝗺𝗮𝗻𝗱 𝘁𝗵𝗮𝘁 𝘆𝗼𝘂 𝘁𝘆𝗽𝗲 𝘁𝗵𝗲𝗺𝗲 𝗯𝗼𝘅`, threadID);
-      }
-
-      await global.modelAntiSt.findOneAndUpdate({
-        threadID
-      }, {
-        data
-      });
-      return api.sendMessage(`[ 𝗠𝗢𝗗𝗘 ] → Anti mode ${setting}: ${data.antist[setting] ? 'On' : 'Off'}`, threadID);
-    } catch (e) {
-      console.log(e);
-      api.sendMessage("[ 𝗠𝗢𝗗𝗘 ] → An error occurred while executing the command", threadID);
-    }
-  }
-  catch (err) {
-    console.log(err)
-  }
-};
+module.exports.run = async function({ api, event, Threads, getText }) {
+	const { threadID, messageID } = event;
+	let data = (await Threads.getData(threadID)).data;
+  
+	if (typeof data["rankup"] == "undefined" || data["rankup"] == false) data["rankup"] = true;
+	else data["rankup"] = false;
+	
+	await Threads.setData(threadID, { data });
+	global.data.threadData.set(threadID, data);
+	return api.sendMessage(`${(data["rankup"] == true) ? getText("on") : getText("off")} ${getText("successText")}`, threadID, messageID);
+}
